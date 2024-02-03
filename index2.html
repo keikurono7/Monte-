@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Estimating Pi with Monte Carlo Method</title>
+    <style>
+      /* Style for the container div */
+      #container {
+        position: relative;
+        width: 400px;
+        height: 400px;
+        margin: 50px auto;
+        background-color: #eee;
+      }
+
+      /* Style for the square div */
+      #square {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: 2px solid #333;
+      }
+
+      /* Style for the circle div */
+      #circle {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        border: 2px dashed #333;
+        box-sizing: border-box;
+      }
+
+      /* Style for the point div */
+      .point {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background-color: red;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container">
+      <div id="square"></div>
+      <div id="circle"></div>
+    </div>
+    <p id="result">Calculating...</p>
+
+    <script>
+      // Define the number of points to generate
+      const NUM_POINTS = 100000000;
+
+      // Get references to the square and circle elements
+      const square = document.getElementById('square');
+      const circle = document.getElementById('circle');
+
+      // Create a Web Worker to generate random points
+      const worker = new Worker('worker.js');
+      worker.postMessage(NUM_POINTS);
+
+      // Listen for messages from the Web Worker
+      let total = 0;
+      let inside = 0;
+      worker.onmessage = function(event) {
+        const points = event.data;
+        for (let i = 0; i < points.length; i++) {
+          const x = points[i].x;
+          const y = points[i].y;
+          total++;
+          if (x * x + y * y <= 1) {
+            inside++;
+            const point = document.createElement('div');
+            point.className = 'point';
+            point.style.left = `${x * 100}%`;
+            point.style.top = `${y * 100}%`;
+            circle.appendChild(point);
+          } else {
+            const point = document.createElement('div');
+            point.className = 'point';
+            point.style.left = `${x * 100}%`;
+            point.style.top = `${y * 100}%`;
+            square.appendChild(point);
+          }
+        }
+
+        // Calculate and display the estimated value of Pi
+        const pi = (inside / total) * 4;
+        document.getElementById('result').textContent = `Estimated value of Pi: still a little work is left wait for it${pi.toFixed(6)}`;
+      };
+    </script>
+  </body>
+</html>
